@@ -1,17 +1,22 @@
 package com.couchbase;
 
-
-import com.couchbase.client.core.message.kv.subdoc.multi.Lookup;
-import com.couchbase.client.core.message.kv.subdoc.multi.Mutation;
 import com.couchbase.client.core.retry.FailFastRetryStrategy;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
+import com.couchbase.client.java.document.AbstractDocument;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-import com.couchbase.client.java.subdoc.DocumentFragment;
-import com.couchbase.client.java.subdoc.MutateInBuilder;
+import com.couchbase.client.java.query.AsyncN1qlQueryResult;
+import com.couchbase.client.java.query.AsyncN1qlQueryRow;
+import com.couchbase.client.java.query.N1qlQuery;
+import rx.Observable;
 
-public class SampleSub {
+/**
+ * Created by justin on 11/7/16.
+ */
+public class CacheQuery {
 
     public static void main(String[] args) throws Exception {
 
@@ -27,28 +32,11 @@ public class SampleSub {
         CouchbaseCluster cluster = CouchbaseCluster.create(env, "192.168.61.101");
         Bucket bucket = cluster.openBucket("testload");
 
-        System.out.println("Lookup attempt");
-
-        DocumentFragment<Lookup> lookupRslt = bucket
-                .lookupIn("Int02")
-                .get("parent.name")
-                .execute();
-
-        String subValue = lookupRslt.content("parent.name", String.class);
-        System.out.println("Lookup result" + subValue);
-
-        System.out.println("Mutate attempt");
-
-        MutateInBuilder builder = bucket.mutateIn("Int02");
-        DocumentFragment<Mutation> result = builder.replace("parent.age", 40).execute();
-
-        DocumentFragment<Lookup> result2 = bucket
-                .lookupIn("Int02")
-                .get("parent.age")
-                .execute();
-        System.out.println("Mutation result" + result2);
-
-        bucket.close();
-        cluster.disconnect();
+        Observable<JsonObject> someQuery = bucket.async()
+                .query(N1qlQuery.simple("SELECT * FROM testload WHERE META().id IS NOT MISSING"))
+                .flatMap(AsyncN1qlQueryResult::rows)
+                .map(AsyncN1qlQueryRow::value)
+                .flatMap(value -> bucket.async().upsert(JsonDocument.create("theResult", 30, value)).map(AbstractDocument::content
+                ));
     }
 }
