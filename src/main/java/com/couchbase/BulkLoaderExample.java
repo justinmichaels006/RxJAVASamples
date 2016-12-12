@@ -80,7 +80,7 @@ public class BulkLoaderExample {
             // Create the json document
             jsonDoc = JsonDocument.create(theID.toString(), jsonObj);
             // Build the array of items to load
-            // TODO Batching 
+            // TODO Batching
             docArray.add(i, jsonDoc);
         }
 
