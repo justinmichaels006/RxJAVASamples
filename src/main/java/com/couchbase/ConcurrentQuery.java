@@ -1,5 +1,9 @@
 package com.couchbase;
 
+import com.couchbase.client.core.event.consumers.LoggingConsumer;
+import com.couchbase.client.core.logging.CouchbaseLogLevel;
+import com.couchbase.client.core.metrics.DefaultLatencyMetricsCollectorConfig;
+import com.couchbase.client.core.metrics.DefaultMetricsCollectorConfig;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
@@ -12,6 +16,7 @@ import rx.Observable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ConcurrentQuery {
@@ -27,7 +32,11 @@ public class ConcurrentQuery {
                 .connectTimeout(30000)
                 .queryTimeout(75000)
                 .queryEndpoints(1)
-                .kvTimeout(10000).build();
+                .kvTimeout(10000)
+                .networkLatencyMetricsCollectorConfig(DefaultLatencyMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
+                .runtimeMetricsCollectorConfig(DefaultMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
+                .defaultMetricsLoggingConsumer(true, CouchbaseLogLevel.DEBUG, LoggingConsumer.OutputFormat.JSON_PRETTY)
+                .build();
         List<String> nodes = Arrays.asList("192.168.61.101");
         cluster = CouchbaseCluster.create(environment, nodes);
         bucket = cluster.openBucket("beer-sample");
@@ -61,7 +70,7 @@ public class ConcurrentQuery {
         //Set<Callable<N1qlQueryResult>> callables = new HashSet<Callable<N1qlQueryResult>>();
         final AtomicInteger tracker = new AtomicInteger(1);
 
-        int q = 10;
+        int q = 20;
 
         for (int x = 0; x < q; x++) {
             n1qlArray.add(n1ql);
@@ -75,7 +84,9 @@ public class ConcurrentQuery {
                     return bucket.async().query(qry);
                             //.retryWhen(anyOf(BackpressureException.class).max(5).delay(Delay.exponential(TimeUnit.MILLISECONDS, 1, 2)).build());
                             //.retryWhen(anyOf(OnErrorFailedException.class).max(2).delay(Delay.exponential(TimeUnit.MILLISECONDS, 1, 2)).build());
-                    }).toBlocking().subscribe(qresult -> System.out.println("Total execution this query: " + (System.currentTimeMillis() - totalTimeStart)));
+                    }).flatMap(nxt -> {
+                        return nxt.info();
+                        }).toBlocking().subscribe(qresult -> System.out.println(qresult.elapsedTime()));
 
         totalTime = System.currentTimeMillis() - totalTimeStart;
         System.out.println("Total execution time across all threads: " + totalTime + "ms");
