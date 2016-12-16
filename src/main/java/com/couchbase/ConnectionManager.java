@@ -27,7 +27,9 @@ public class ConnectionManager {
                 .retryStrategy(FailFastRetryStrategy.INSTANCE) // only needed in demanding cache-only use case
                 .build();
         CouchbaseCluster cluster = CouchbaseCluster.create(environment, nodes);
+
         final Bucket bucket = cluster.openBucket(bucketName);
+
         return bucket;
     }
 }

@@ -36,7 +36,7 @@ public class CacheQuery {
                 .query(N1qlQuery.simple("SELECT * FROM testload WHERE META().id IS NOT MISSING"))
                 .flatMap(AsyncN1qlQueryResult::rows)
                 .map(AsyncN1qlQueryRow::value)
-                .flatMap(value -> bucket.async().upsert(JsonDocument.create("theResult", 30, value)).map(AbstractDocument::content
-                ));
+                .flatMap(value -> bucket.async().upsert(JsonDocument.create("theResult", 30, value))
+                .map(AbstractDocument::content));
     }
 }

@@ -18,9 +18,8 @@ public class Retry {
         int timer = 1;
         int expiry = 30;
 
-            while (true) {
+            for (int i=0; i<10000; i++) {
                 try {
-                    //return bucket.upsert(document, expiry, timeUnit);
                     bucket.upsert(document, expiry, TimeUnit.SECONDS);
                 } catch (Exception e) {
                     if (retryCount >= 2 * ConnectionManager.MAX_RETRIES) {
