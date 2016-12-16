@@ -1,7 +1,5 @@
 package com.couchbase;
 
-import com.couchbase.client.core.BackpressureException;
-import com.couchbase.client.core.time.Delay;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
@@ -10,15 +8,11 @@ import com.couchbase.client.java.query.N1qlQuery;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
-import rx.exceptions.OnErrorFailedException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.couchbase.client.java.util.retry.RetryBuilder.anyOf;
 
 public class ConcurrentQuery {
     private CouchbaseCluster cluster;
@@ -55,6 +49,9 @@ public class ConcurrentQuery {
 
         System.out.println(builder.toString());
 
+        /*Statement n1ql2 = Select.select("name", "IFMISSINGORNULL(country,999)", "IFMISSINGORNULL(code,999)")
+                .from("beer-sample")
+                .where(("type").equals("brewery").and("name")*/
         final N1qlQuery n1ql = N1qlQuery.simple(builder.toString(), N1qlParams
                 .build().adhoc(false));
 
@@ -75,12 +72,10 @@ public class ConcurrentQuery {
         Observable
                 .from(n1qlArray)
                 .flatMap(qry -> {
-                    return bucket.async().query(qry)
-                            .retryWhen(anyOf(BackpressureException.class).max(5)
-                                    .delay(Delay.exponential(TimeUnit.MILLISECONDS, 1, 2)).build())
-                            .retryWhen(anyOf(OnErrorFailedException.class).max(2)
-                                    .delay(Delay.exponential(TimeUnit.MILLISECONDS, 1, 2)).build());
-                    }).last().subscribe(qresult -> System.out.println(System.currentTimeMillis() - totalTimeStart));
+                    return bucket.async().query(qry);
+                            //.retryWhen(anyOf(BackpressureException.class).max(5).delay(Delay.exponential(TimeUnit.MILLISECONDS, 1, 2)).build());
+                            //.retryWhen(anyOf(OnErrorFailedException.class).max(2).delay(Delay.exponential(TimeUnit.MILLISECONDS, 1, 2)).build());
+                    }).toBlocking().subscribe(qresult -> System.out.println("Total execution this query: " + (System.currentTimeMillis() - totalTimeStart)));
 
         totalTime = System.currentTimeMillis() - totalTimeStart;
         System.out.println("Total execution time across all threads: " + totalTime + "ms");
