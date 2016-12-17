@@ -4,6 +4,7 @@ import com.couchbase.client.core.event.consumers.LoggingConsumer;
 import com.couchbase.client.core.logging.CouchbaseLogLevel;
 import com.couchbase.client.core.metrics.DefaultLatencyMetricsCollectorConfig;
 import com.couchbase.client.core.metrics.DefaultMetricsCollectorConfig;
+import com.couchbase.client.core.time.Delay;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
@@ -31,7 +32,8 @@ public class ConcurrentQuery {
                 .builder()
                 .connectTimeout(30000)
                 .queryTimeout(75000)
-                .queryEndpoints(1)
+                .queryEndpoints(1) //only matters for long running queries
+                .observeIntervalDelay(Delay.exponential(TimeUnit.MICROSECONDS, 1))
                 .kvTimeout(10000)
                 .networkLatencyMetricsCollectorConfig(DefaultLatencyMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
                 .runtimeMetricsCollectorConfig(DefaultMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
