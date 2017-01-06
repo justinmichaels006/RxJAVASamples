@@ -10,6 +10,8 @@ import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
+import com.couchbase.client.java.query.Select;
+import com.couchbase.client.java.query.Statement;
 import org.junit.Before;
 import org.junit.Test;
 import rx.Observable;
@@ -19,6 +21,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.couchbase.client.java.query.dsl.Expression.*;
 
 public class ConcurrentQuery {
     private CouchbaseCluster cluster;
@@ -40,6 +48,17 @@ public class ConcurrentQuery {
                 .defaultMetricsLoggingConsumer(true, CouchbaseLogLevel.DEBUG, LoggingConsumer.OutputFormat.JSON_PRETTY)
                 .build();
         List<String> nodes = Arrays.asList("192.168.61.101");
+
+        //More information here:
+        //https://developer.couchbase.com/documentation/server/current/sdk/java/collecting-information-and-logging.html
+        Logger logger = Logger.getLogger("com.couchbase.client");
+        logger.setLevel(Level.FINE);
+        for(Handler h : logger.getParent().getHandlers()) {
+            if(h instanceof ConsoleHandler){
+                h.setLevel(Level.INFO); //Use .FINE for debug level
+            }
+        }
+
         cluster = CouchbaseCluster.create(environment, nodes);
         bucket = cluster.openBucket("beer-sample");
 
@@ -60,11 +79,14 @@ public class ConcurrentQuery {
 
         System.out.println(builder.toString());
 
-        /*Statement n1ql2 = Select.select("name", "IFMISSINGORNULL(country,999)", "IFMISSINGORNULL(code,999)")
-                .from("beer-sample")
-                .where(("type").equals("brewery").and("name")*/
-        final N1qlQuery n1ql = N1qlQuery.simple(builder.toString(), N1qlParams
-                .build().adhoc(false));
+        Statement n1ql2 = Select.select("name", "IFMISSINGORNULL(country,999)", "IFMISSINGORNULL(code,999)")
+                .from(i("beer-sample"))
+                .where(x("type").eq(s("brewery"))
+                        .and(x("name").isNotMissing()))
+                .limit(1);
+
+        final N1qlQuery n1ql = N1qlQuery.simple(n1ql2, N1qlParams.build().adhoc(false));
+        //replace builder.toString() with n1ql2 to use query api
 
         List<N1qlQuery> n1qlArray = new ArrayList<>();
 
@@ -93,6 +115,9 @@ public class ConcurrentQuery {
         totalTime = System.currentTimeMillis() - totalTimeStart;
         System.out.println("Total execution time across all threads: " + totalTime + "ms");
 
+        //Pause for 1 min
+        Thread.sleep(60000);
+
         bucket.close();
         cluster.disconnect();
     }
@@ -103,3 +128,4 @@ public class ConcurrentQuery {
         cluster.disconnect();
     }*/
 }
+
