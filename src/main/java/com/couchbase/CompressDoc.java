@@ -25,8 +25,7 @@ public class CompressDoc {
         final int RETRY_DELAY = 50;
         final int MAX_DELAY = 1000;
         int i = 0;
-        //String abeer = "21st_amendment_brewery_cafe-21a_ipa";
-
+        
         ViewResult result = myB.query(ViewQuery.from("beer", "allkeys"));
         //N1qlQueryResult result2 = myB.query((N1qlQuery.simple("select meta(`beer-sample`).id from `beer-sample`")));
 
