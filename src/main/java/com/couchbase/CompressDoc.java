@@ -25,7 +25,7 @@ public class CompressDoc {
         final int RETRY_DELAY = 50;
         final int MAX_DELAY = 1000;
         int i = 0;
-        
+
         ViewResult result = myB.query(ViewQuery.from("beer", "allkeys"));
         //N1qlQueryResult result2 = myB.query((N1qlQuery.simple("select meta(`beer-sample`).id from `beer-sample`")));
 
@@ -35,14 +35,13 @@ public class CompressDoc {
             // Create an id to use
             UUID newID = UUID.randomUUID();
 
-            //JsonDocument jsonDoc = myB.get(row.toString());
             JsonDocument jsonDoc = myB.get(row.id());
+            //JsonDocument jsonDoc = myB.get(row.toString());
 
             LegacyDocument ldoc = LegacyDocument.create(newID.toString(), jsonDoc);
             Object newdoc = lTrans.encode(ldoc);
             LegacyDocument ldoc2 = LegacyDocument.create(newID.toString(), newdoc.toString());
 
-            // Add other logic here (TODO faker)
             myB2.upsert(ldoc2);
 
             // Build the array of items to load (TODO Batching)
