@@ -38,5 +38,12 @@ public class CacheQuery {
                 .map(AsyncN1qlQueryRow::value)
                 .flatMap(value -> bucket.async().upsert(JsonDocument.create("theResult", 30, value))
                 .map(AbstractDocument::content));
+
+        Observable<JsonObject> result = bucket.async().get("theResult")
+                .map(AbstractDocument::content)
+                .switchIfEmpty(someQuery);
+
+        result.subscribe(output -> System.out.println(output));
+        
     }
 }
