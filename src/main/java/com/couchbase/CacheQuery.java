@@ -13,9 +13,6 @@ import com.couchbase.client.java.query.AsyncN1qlQueryRow;
 import com.couchbase.client.java.query.N1qlQuery;
 import rx.Observable;
 
-/**
- * Created by justin on 11/7/16.
- */
 public class CacheQuery {
 
     public static void main(String[] args) throws Exception {
@@ -44,6 +41,6 @@ public class CacheQuery {
                 .switchIfEmpty(someQuery);
 
         result.subscribe(output -> System.out.println(output));
-        
+
     }
 }
