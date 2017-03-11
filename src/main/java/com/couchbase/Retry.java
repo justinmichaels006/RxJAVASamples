@@ -22,7 +22,7 @@ public class Retry {
 
         ExecutorService executioner = Executors.newFixedThreadPool(ThreadCount);
 
-            for (int i=0; i<10; i++) {
+            for (int i=1; i<10; i++) {
                 try {
                     adoc.create(String.valueOf(i), aobj.put("count", i));
                     Runnable thework = new SomeRunnable(adoc, bucket);

@@ -42,11 +42,12 @@ public class CompressDoc {
             Object newdoc = lTrans.encode(ldoc);
             LegacyDocument ldoc2 = LegacyDocument.create(newID.toString(), newdoc.toString());
 
-            myB2.upsert(ldoc2);
+            myB2.async().upsert(ldoc2);
+            System.out.println(ldoc2.id());
 
             // Build the array of items to load (TODO Batching)
-            /*docArray.add(i, ldoc2);
-            i = i + 1;*/
+            //docArray.add(i, ldoc2);
+            //i = i + 1;
         }
 
         /*Observable
@@ -61,6 +62,18 @@ public class CompressDoc {
                                     .max(MAX_RETRIES)
                                     .delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY)).build());
                 }).toBlocking().subscribe(document1 -> {});*/
+
+        /*Observable
+                .from(docArray)
+                .flatMap(doc -> {return myB2.async().upsert(doc);})
+        .toBlocking().subscribe(document1 -> {System.out.println(document1);});*/
+
+        // Decoding what's created
+        /*ViewResult result2 = myB2.query(ViewQuery.from("beer", "allkeys"));
+        for (ViewRow row : result2) {
+            LegacyDocument jsonDoc = lTrans.decode(myB2.get(row.id()).content());
+            System.out.println(jsonDoc);
+        }*/
 
         System.out.println("compressed beer sample");
         myB.close();

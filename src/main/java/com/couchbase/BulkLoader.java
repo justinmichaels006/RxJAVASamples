@@ -1,15 +1,11 @@
 package com.couchbase;
 
 import com.couchbase.client.core.BackpressureException;
-import com.couchbase.client.core.retry.FailFastRetryStrategy;
 import com.couchbase.client.core.time.Delay;
 import com.couchbase.client.deps.io.netty.channel.ConnectTimeoutException;
 import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.env.CouchbaseEnvironment;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.error.TemporaryFailureException;
 import com.couchbase.client.java.transcoder.JsonTranscoder;
 import org.json.simple.parser.JSONParser;
@@ -25,24 +21,9 @@ import java.util.concurrent.TimeUnit;
 
 import static com.couchbase.client.java.util.retry.RetryBuilder.anyOf;
 
-/**
- * Created by justin on 11/9/16.
- */
 public class BulkLoader {
 
-    public static void main(String[] args) throws IOException, org.json.simple.parser.ParseException {
-
-        CouchbaseEnvironment environment = DefaultCouchbaseEnvironment.builder()
-                .dnsSrvEnabled(false)
-                .kvEndpoints(2) //if you have batch upload can gain throughput
-                // but with small operations can cause contention with socket overhead
-                .computationPoolSize(4) // very rare needed to be changed
-                //.queryEndpoints(2) // long running N1QL queries
-                //.observeIntervalDelay()
-                .retryStrategy(FailFastRetryStrategy.INSTANCE) // only needed in demanding cache-only use case
-                .build();
-        CouchbaseCluster cluster = CouchbaseCluster.create(environment, "192.168.61.101");
-        final Bucket bucket = cluster.openBucket("test");
+    public String bLoad(Bucket bucket) throws IOException, org.json.simple.parser.ParseException {
 
         int numDocs = 20000;
         long start = System.nanoTime();
@@ -50,7 +31,7 @@ public class BulkLoader {
         final int RETRY_DELAY = 50;
         final int MAX_DELAY = 1000;
 
-        final String filePath1 = "/Users/justin/Documents/javastuff/SampleLoad/ACCT.json";
+        final String filePath1 = "/path/to/file.json";
         FileReader reader1 = null;
 
         try {
@@ -68,23 +49,26 @@ public class BulkLoader {
 
         String jsonString1 = jsonParser.parse(reader1).toString();
 
-        try {
-            jsonObj = trans.stringToJsonObject(jsonString1);
-        } catch (Exception e) {e.printStackTrace();}
-
         for (int i = 0; i < numDocs; i++) {
+
+            try {
+                jsonObj = trans.stringToJsonObject(jsonString1);
+            } catch (Exception e) {e.printStackTrace();}
 
             // Create an id to use
             UUID theID = UUID.randomUUID();
-            AnInsert sd = new AnInsert(theID.toString(), jsonObj, bucket);
 
-            //jsonObj.put("THIS_ID", i + "::" + eventID.toString());
-            //jsonDoc = JsonDocument.create(eventID.toString(), jsonObj);
-            //Observable.just(jsonDoc).map(bucket.async().upsert(jsonDoc));
-            //docArray.add(i, jsonDoc);
+            // Add the ID as an attribute to the document
+            jsonObj.put("THIS_ID", i + "::" + theID.toString());
+            // Add other logic here (TODO faker)
+            // Create the json document
+            jsonDoc = JsonDocument.create(theID.toString(), jsonObj);
+            // Build the array of items to load
+            // TODO Batching
+            docArray.add(i, jsonDoc);
         }
 
-        /*Observable
+        Observable
                 .from(docArray)
                 .flatMap(doc -> {
                     return bucket.async().upsert(doc)
@@ -96,43 +80,12 @@ public class BulkLoader {
                                     .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY)).build())
                             .retryWhen(anyOf(ConnectTimeoutException.class)
                                     .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.SECONDS, RETRY_DELAY, MAX_DELAY)).build());
-                }).toBlocking().subscribe(document1 -> {});*/
+                }).toBlocking().subscribe(document1 -> {});
 
         long end = System.nanoTime();
 
         System.out.println("Bulk loading " + numDocs + " docs took: " + TimeUnit.NANOSECONDS.toSeconds(end - start) + "s.");
-        bucket.close();
-        cluster.disconnect();
+        return ("Bulk loading " + numDocs + " docs took: " + TimeUnit.NANOSECONDS.toSeconds(end - start) + "s.");
     }
 
-    public static class AnInsert {
-
-        //private String key;
-        //private JsonObject content;
-        //private Bucket bucket;
-        private int MAX_RETRIES = 10;
-        private int RETRY_DELAY = 1;
-        private int MAX_DELAY = 5;
-
-        public AnInsert(String key, JsonObject content, Bucket bucket) {
-
-            Observable<JsonDocument> theProcessor = Observable
-                    .just(key)
-                    .map(s -> JsonDocument.create(s, content))
-                    .flatMap(doc -> bucket.async().upsert(doc)
-                            .retryWhen(anyOf(BackpressureException.class)
-                                    .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY)).build())
-                            .retryWhen(anyOf(TemporaryFailureException.class)
-                                    .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY)).build())
-                            .retryWhen(anyOf(ConnectTimeoutException.class)
-                                    .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.SECONDS, RETRY_DELAY, MAX_DELAY)).build()));
-
-            try {
-                theProcessor.toBlocking()
-                        .subscribe(jsonDocument -> System.out.println("Inserted " + jsonDocument));
-            } catch (Exception e) {
-                System.out.println("Error during bulk insert " + e);
-            }
-        }
-    }
 }

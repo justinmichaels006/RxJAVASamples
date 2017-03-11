@@ -44,7 +44,7 @@ public class ConcurrentQuery {
                 .observeIntervalDelay(Delay.exponential(TimeUnit.MICROSECONDS, 1))
                 .kvTimeout(10000)
                 .networkLatencyMetricsCollectorConfig(DefaultLatencyMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
-                .runtimeMetricsCollectorConfig(DefaultMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
+                .runtimeMetricsCollectorConfig(DefaultMetricsCollectorConfig.create(1, TimeUnit.MILLISECONDS))
                 .defaultMetricsLoggingConsumer(true, CouchbaseLogLevel.DEBUG, LoggingConsumer.OutputFormat.JSON_PRETTY)
                 .build();
         List<String> nodes = Arrays.asList("192.168.61.101");
@@ -115,7 +115,7 @@ public class ConcurrentQuery {
         totalTime = System.currentTimeMillis() - totalTimeStart;
         System.out.println("Total execution time across all threads: " + totalTime + "ms");
 
-        //Pause for 1 min
+        //Pause for 1 min to get event bus output
         Thread.sleep(60000);
 
         bucket.close();
