@@ -14,10 +14,7 @@ import java.util.UUID;
 
 public class CompressDoc {
 
-    public static void main(String[] args) {
-
-        Bucket myB = ConnectionManager.getConnection();
-        Bucket myB2 = ConnectionManager.getConnection2();
+    public String legacyCompress(Bucket b, Bucket b2) {
 
         LegacyTranscoder lTrans = new LegacyTranscoder(1);
         List<LegacyDocument> docArray = new ArrayList<>();
@@ -26,7 +23,7 @@ public class CompressDoc {
         final int MAX_DELAY = 1000;
         int i = 0;
 
-        ViewResult result = myB.query(ViewQuery.from("beer", "allkeys"));
+        ViewResult result = b.query(ViewQuery.from("beer", "allkeys"));
         //N1qlQueryResult result2 = myB.query((N1qlQuery.simple("select meta(`beer-sample`).id from `beer-sample`")));
 
         for (ViewRow row : result) {
@@ -35,14 +32,14 @@ public class CompressDoc {
             // Create an id to use
             UUID newID = UUID.randomUUID();
 
-            JsonDocument jsonDoc = myB.get(row.id());
+            JsonDocument jsonDoc = b.get(row.id());
             //JsonDocument jsonDoc = myB.get(row.toString());
 
             LegacyDocument ldoc = LegacyDocument.create(newID.toString(), jsonDoc);
             Object newdoc = lTrans.encode(ldoc);
             LegacyDocument ldoc2 = LegacyDocument.create(newID.toString(), newdoc.toString());
 
-            myB2.async().upsert(ldoc2);
+            b2.async().upsert(ldoc2);
             System.out.println(ldoc2.id());
 
             // Build the array of items to load (TODO Batching)
@@ -50,34 +47,7 @@ public class CompressDoc {
             //i = i + 1;
         }
 
-        /*Observable
-                .from(docArray)
-                .flatMap(doc -> {
-                    return myB2.async().upsert(doc)
-                            // do retry for each op individually to not fail the full batch
-                            .retryWhen(anyOf(BackpressureException.class)
-                                    .max(MAX_RETRIES)
-                                    .delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY)).build())
-                            .retryWhen(anyOf(TemporaryFailureException.class)
-                                    .max(MAX_RETRIES)
-                                    .delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY)).build());
-                }).toBlocking().subscribe(document1 -> {});*/
-
-        /*Observable
-                .from(docArray)
-                .flatMap(doc -> {return myB2.async().upsert(doc);})
-        .toBlocking().subscribe(document1 -> {System.out.println(document1);});*/
-
-        // Decoding what's created
-        /*ViewResult result2 = myB2.query(ViewQuery.from("beer", "allkeys"));
-        for (ViewRow row : result2) {
-            LegacyDocument jsonDoc = lTrans.decode(myB2.get(row.id()).content());
-            System.out.println(jsonDoc);
-        }*/
-
-        System.out.println("compressed beer sample");
-        myB.close();
-        myB2.close();
+        return "compressed beer sample";
 
     }
 }
