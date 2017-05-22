@@ -9,7 +9,7 @@ public class Retry {
     public static void main(String[] args) {
 
         Bucket bucket = ConnectionManager.getConnection();
-        
+
         try {
             ConcurrentQuery.testParalel(bucket);
         } catch (Exception e)

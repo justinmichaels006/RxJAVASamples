@@ -8,14 +8,18 @@ import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ConnectionManager {
 
     public static final int MAX_RETRIES = 3;
-    public static final String bucketName = "beer-sample"; // more elegant use of bucket name
-    public static final String bucketName2 = "beers";
+    public static final String bucketName = "testload"; // more elegant use of bucket name
+    public static final String bucketName2 = "travel-sample";
     public static final String bucketPassword = "";
-    public static final List<String> nodes = Arrays.asList("10.112.151.101"); //dnssrv entry here
+    public static final List<String> nodes = Arrays.asList("192.168.61.101"); //dnssrv entry here
 
     public static CouchbaseEnvironment environment = DefaultCouchbaseEnvironment.builder()
             .dnsSrvEnabled(false)
@@ -28,14 +32,29 @@ public class ConnectionManager {
             .build();
 
     public static CouchbaseCluster cluster = CouchbaseCluster.create(environment, nodes);
+            //.authenticate("user", "pass");
 
     public static Bucket getConnection() {
-        final Bucket bucket = cluster.openBucket(bucketName);
+            final Bucket bucket = cluster.openBucket(bucketName, bucketPassword);
         return bucket;
     }
 
     public static Bucket getConnection2() {
-        final Bucket bucket = cluster.openBucket(bucketName2);
+        final Bucket bucket = cluster.openBucket(bucketName2, bucketPassword);
         return bucket;
     }
+
+    public static rx.Subscription getBus() {
+        //More information here:
+        //https://developer.couchbase.com/documentation/server/current/sdk/java/collecting-information-and-logging.html
+        Logger logger = Logger.getLogger("com.couchbase.client");
+        logger.setLevel(Level.FINE);
+        for(Handler h : logger.getParent().getHandlers()) {
+            if(h instanceof ConsoleHandler){
+                h.setLevel(Level.INFO); //Use .FINE for debug level
+            }
+        }
+        return environment.eventBus().get().subscribe(System.out::println);
+    }
+
 }
