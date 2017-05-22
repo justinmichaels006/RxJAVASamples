@@ -1,104 +1,47 @@
 package com.couchbase;
 
-import com.couchbase.client.core.event.consumers.LoggingConsumer;
-import com.couchbase.client.core.logging.CouchbaseLogLevel;
-import com.couchbase.client.core.metrics.DefaultLatencyMetricsCollectorConfig;
-import com.couchbase.client.core.metrics.DefaultMetricsCollectorConfig;
-import com.couchbase.client.core.time.Delay;
 import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
-import com.couchbase.client.java.query.Select;
-import com.couchbase.client.java.query.Statement;
-import org.junit.Before;
-import org.junit.Test;
 import rx.Observable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static com.couchbase.client.java.query.dsl.Expression.*;
 
 public class ConcurrentQuery {
-    private CouchbaseCluster cluster;
-    private Bucket bucket;
-    long totalTime = 0;
-    int numResponses = 0;
 
-    @Before
-    public void setUp() throws InterruptedException {
-        DefaultCouchbaseEnvironment environment = DefaultCouchbaseEnvironment
-                .builder()
-                .connectTimeout(30000)
-                .queryTimeout(75000)
-                .queryEndpoints(1) //only matters for long running queries
-                .observeIntervalDelay(Delay.exponential(TimeUnit.MICROSECONDS, 1))
-                .kvTimeout(10000)
-                .networkLatencyMetricsCollectorConfig(DefaultLatencyMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
-                .runtimeMetricsCollectorConfig(DefaultMetricsCollectorConfig.create(1, TimeUnit.MILLISECONDS))
-                .defaultMetricsLoggingConsumer(true, CouchbaseLogLevel.DEBUG, LoggingConsumer.OutputFormat.JSON_PRETTY)
-                .build();
-        List<String> nodes = Arrays.asList("192.168.61.101");
+    public static Long testParalel(Bucket bucket) throws InterruptedException {
 
-        //More information here:
-        //https://developer.couchbase.com/documentation/server/current/sdk/java/collecting-information-and-logging.html
-        Logger logger = Logger.getLogger("com.couchbase.client");
-        logger.setLevel(Level.FINE);
-        for(Handler h : logger.getParent().getHandlers()) {
-            if(h instanceof ConsoleHandler){
-                h.setLevel(Level.INFO); //Use .FINE for debug level
-            }
-        }
+        long totalTime = 0;
+        List<N1qlQuery> n1qlArray = new ArrayList<>();
 
-        cluster = CouchbaseCluster.create(environment, nodes);
-        bucket = cluster.openBucket("beer-sample");
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:1\",  {\"type\":\"A\",\"value\":\"FOX\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:2\",  {\"type\":\"A\",\"value\":\"COP\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:3\",  {\"type\":\"A\",\"value\":\"TAXI\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:4\",  {\"type\":\"A\",\"value\":\"LINCOLN\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:5\",  {\"type\":\"A\",\"value\":\"ARIZONA\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:6\",  {\"type\":\"A\",\"value\":\"WASHINGTON\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:7\",  {\"type\":\"A\",\"value\":\"DELL\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:10\",  {\"type\":\"A\",\"value\":\"LUCENT\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:1\",  {\"type\":\"A\",\"value\":\"TROT\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:2\",  {\"type\":\"A\",\"value\":\"CAR\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:3\",  {\"type\":\"A\",\"value\":\"CAB\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:6\",  {\"type\":\"A\",\"value\":\"MONUMENT\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:7\",  {\"type\":\"A\",\"value\":\"PC\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:8\",  {\"type\":\"A\",\"value\":\"MICROSOFT\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:9\",  {\"type\":\"A\",\"value\":\"APPLE\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:11\",  {\"type\":\"A\",\"value\":\"SCOTCH\"}) RETURNING *;"));
+        System.out.println(n1qlArray.toString());
 
-        environment.eventBus().get().subscribe(System.out::println);
-    }
-
-    @Test
-    public void testParalel() throws InterruptedException {
-        StringBuilder builder = new StringBuilder();
-        builder.append("SELECT name, IFMISSINGORNULL(country,999), IFMISSINGORNULL(code,999) FROM `beer-sample` WHERE type = \"brewery\" AND name IS NOT MISSING LIMIT 1;");
-//		builder.append("FROM APP_SPEC_DATA AS alerts ");
-//		builder.append("WHERE  documentType = 'uCrew::AlertView' AND status = 'Open' AND area = 'InFlight' ");
-//		builder.append("AND rootCategoryKey IN ['uCrew_AlertCategory_52b4c981-90bd-436e-8e42-415e9089dc3b','uCrew_AlertCategory_2b5d18a0-b988-4274-8b55-5951be76ec9e'] ");
-//		builder.append("AND IFMISSING(delayReason,999) IN ['IL','IM','IS','IX','LTIL','LTIM','LTIS','LTIX']  ");
-//		builder.append("AND ARRAY_LENGTH(flightLegs) > 0  ");
-//		builder.append("ORDER BY alerts.flightLegDepartureTime, META().id DESC ");
-//		builder.append("LIMIT 10 OFFSET 0;");
-
-        System.out.println(builder.toString());
-
-        Statement n1ql2 = Select.select("name", "IFMISSINGORNULL(country,999)", "IFMISSINGORNULL(code,999)")
+        /*Statement n1ql2 = Select.select("name", "IFMISSINGORNULL(country,999)", "IFMISSINGORNULL(code,999)")
                 .from(i("beer-sample"))
                 .where(x("type").eq(s("brewery"))
                         .and(x("name").isNotMissing()))
                 .limit(1);
-
         final N1qlQuery n1ql = N1qlQuery.simple(n1ql2, N1qlParams.build().adhoc(false));
-        //replace builder.toString() with n1ql2 to use query api
-
-        List<N1qlQuery> n1qlArray = new ArrayList<>();
-
-        //ExecutorService executor = Executors.newFixedThreadPool(10);
-        //Set<Callable<N1qlQueryResult>> callables = new HashSet<Callable<N1qlQueryResult>>();
-        final AtomicInteger tracker = new AtomicInteger(1);
-
         int q = 20;
-
         for (int x = 0; x < q; x++) {
             n1qlArray.add(n1ql);
-        }
+        }*/
 
         final long totalTimeStart = System.currentTimeMillis();
 
@@ -114,18 +57,7 @@ public class ConcurrentQuery {
 
         totalTime = System.currentTimeMillis() - totalTimeStart;
         System.out.println("Total execution time across all threads: " + totalTime + "ms");
-
-        //Pause for 1 min to get event bus output
-        Thread.sleep(60000);
-
-        bucket.close();
-        cluster.disconnect();
+        return totalTime;
     }
-
-    /*@After
-    public void tearDown() {
-        bucket.close();
-        cluster.disconnect();
-    }*/
 }
 
