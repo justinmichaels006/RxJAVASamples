@@ -14,22 +14,22 @@ public class ConcurrentQuery {
         long totalTime = 0;
         List<N1qlQuery> n1qlArray = new ArrayList<>();
 
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:1\",  {\"type\":\"A\",\"value\":\"FOX\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:2\",  {\"type\":\"A\",\"value\":\"COP\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:3\",  {\"type\":\"A\",\"value\":\"TAXI\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:4\",  {\"type\":\"A\",\"value\":\"LINCOLN\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:5\",  {\"type\":\"A\",\"value\":\"ARIZONA\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:6\",  {\"type\":\"A\",\"value\":\"WASHINGTON\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:7\",  {\"type\":\"A\",\"value\":\"DELL\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:10\",  {\"type\":\"A\",\"value\":\"LUCENT\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:1\",  {\"type\":\"A\",\"value\":\"TROT\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:2\",  {\"type\":\"A\",\"value\":\"CAR\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:3\",  {\"type\":\"A\",\"value\":\"CAB\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:6\",  {\"type\":\"A\",\"value\":\"MONUMENT\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:7\",  {\"type\":\"A\",\"value\":\"PC\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:8\",  {\"type\":\"A\",\"value\":\"MICROSOFT\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:9\",  {\"type\":\"A\",\"value\":\"APPLE\"}) RETURNING *;"));
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:11\",  {\"type\":\"A\",\"value\":\"SCOTCH\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:1\",  {\"type\":\"A\",\"val\":\"FOX\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:2\",  {\"type\":\"A\",\"val\":\"COP\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:3\",  {\"type\":\"A\",\"val\":\"TAXI\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:4\",  {\"type\":\"A\",\"val\":\"LINCOLN\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:5\",  {\"type\":\"A\",\"val\":\"ARIZONA\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:6\",  {\"type\":\"A\",\"val\":\"WASHINGTON\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:7\",  {\"type\":\"A\",\"val\":\"DELL\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:10\",  {\"type\":\"A\",\"val\":\"LUCENT\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:1\",  {\"type\":\"A\",\"val\":\"TROT\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:2\",  {\"type\":\"A\",\"val\":\"CAR\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:3\",  {\"type\":\"A\",\"val\":\"CAB\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:6\",  {\"type\":\"A\",\"val\":\"MONUMENT\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:7\",  {\"type\":\"A\",\"val\":\"PC\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:8\",  {\"type\":\"A\",\"val\":\"MICROSOFT\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:9\",  {\"type\":\"A\",\"val\":\"APPLE\"}) RETURNING *;"));
+        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:11\",  {\"type\":\"A\",\"val\":\"SCOTCH\"}) RETURNING *;"));
         System.out.println(n1qlArray.toString());
 
         /*Statement n1ql2 = Select.select("name", "IFMISSINGORNULL(country,999)", "IFMISSINGORNULL(code,999)")
