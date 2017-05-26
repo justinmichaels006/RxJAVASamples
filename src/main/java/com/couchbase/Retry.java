@@ -21,6 +21,7 @@ public class Retry {
     public static void main(String[] args) throws IOException, ParseException {
 
         Bucket bucket = ConnectionManager.getConnection();
+        Bucket bucket2 = ConnectionManager.getConnection2();
 
         int numDocs = 10;
         int groupDocs = 10;
@@ -65,16 +66,14 @@ public class Retry {
 
         }
 
-        try {
-            //ConcurrentQuery.testParalel(bucket);
-            BulkLoader.bLoad(bucket, docArray);
-        } catch (Exception e)
-        {
-            System.out.println(e);
-        }
+        System.out.println("Starting... ");
+        //ConcurrentQuery.testParalel(bucket);
+        //BulkLoader.bLoad(bucket, docArray);
+        RefDoc.addRefDoc(bucket2);
 
         // Disconnect and clear all allocated resources
         System.out.println("debug ... bye");
         bucket.close();
+        bucket2.close();
     }
 }
