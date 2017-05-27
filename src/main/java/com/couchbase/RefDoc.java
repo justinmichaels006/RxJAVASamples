@@ -3,6 +3,7 @@ package com.couchbase;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.transcoder.JsonTranscoder;
 import rx.Observable;
 
@@ -20,8 +21,9 @@ public class RefDoc {
         Observable<String> jREFDOC = bucket.async().get(abeer)
                 .map(doc -> doc.content().getString("brewery_id"))
                 .flatMap(id -> bucket.async().get(id))
-                .map(doc3 -> {return doc3.content().getString("website");})
-                ;
+                .map(doc3 -> {
+                    return doc3.content().getString("website");
+                });
 
         jdoc = bucket.get(abeer);
         System.out.println("Got doc " + jdoc.content().getString("brewery_id"));
@@ -35,7 +37,24 @@ public class RefDoc {
         } catch (Exception e) {
             System.out.println("Error during web doc " + e);
         }
-
         return jobj;
+    }
+
+    public static String qBulk(Bucket bucket) {
+
+        final N1qlQuery n1ql5 = N1qlQuery.simple("SELECT meta().id FROM `beer-sample` WHERE abv > 9");
+
+        Observable<String> qRow = bucket.async()
+                .query(n1ql5)
+                .flatMap(result -> result.rows())
+                .map(rowContent -> rowContent.value().get("id").toString());
+
+        try{
+            qRow.map(a -> bucket.get(a)).toBlocking().forEach(c -> System.out.println(c));
+            System.out.println("aaaa");
+            return "ok";
+        } catch (Exception e) {
+            return("debug bulk " + e);
+        }
     }
 }

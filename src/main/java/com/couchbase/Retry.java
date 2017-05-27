@@ -69,7 +69,8 @@ public class Retry {
         System.out.println("Starting... ");
         //ConcurrentQuery.testParalel(bucket);
         //BulkLoader.bLoad(bucket, docArray);
-        RefDoc.addRefDoc(bucket2);
+        //RefDoc.addRefDoc(bucket2);
+        RefDoc.qBulk(bucket2);
 
         // Disconnect and clear all allocated resources
         System.out.println("debug ... bye");
