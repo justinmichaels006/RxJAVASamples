@@ -51,7 +51,6 @@ public class RefDoc {
 
         try{
             qRow.map(a -> bucket.get(a)).toBlocking().forEach(c -> System.out.println(c));
-            System.out.println("aaaa");
             return "ok";
         } catch (Exception e) {
             return("debug bulk " + e);

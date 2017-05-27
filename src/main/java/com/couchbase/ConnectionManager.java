@@ -17,7 +17,7 @@ public class ConnectionManager {
 
     public static final int MAX_RETRIES = 3;
     public static final String bucketName = "testload"; // more elegant use of bucket name
-    public static final String bucketName2 = "travel-sample";
+    public static final String bucketName2 = "beer-sample";
     public static final String bucketPassword = "";
     public static final List<String> nodes = Arrays.asList("192.168.61.101"); //dnssrv entry here
 
@@ -25,8 +25,8 @@ public class ConnectionManager {
             .dnsSrvEnabled(false)
             .kvEndpoints(2) //if you have batch upload can gain throughput
             // but with small operations can cause contention with socket overhead
-            .computationPoolSize(4) // very rare needed to be changed
             //.queryEndpoints(2) // long running N1QL queries
+            .computationPoolSize(4) // very rare needed to be changed
             //.observeIntervalDelay()
             .retryStrategy(FailFastRetryStrategy.INSTANCE) // only needed in demanding cache-only use case
             .build();
