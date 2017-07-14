@@ -29,9 +29,9 @@ public class SampleSub {
         bucket.upsert(somedoc);
 
         bucket.mutateIn("someKey")
-                .counter("user.logins", 1,false)
-                .counter("user.searches", 5, false)
-                .counter("some.other.path", -1, false)
+                .counter("logins", 1,false)
+                .counter("searches", 5, false)
+                .counter("path", -1, false)
                 .execute();
 
         String subValue = lookupRslt.content("parent", String.class);
