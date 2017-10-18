@@ -11,7 +11,7 @@ import com.couchbase.client.java.subdoc.MutateInBuilder;
 
 public class SampleSub {
 
-    public String SubDocModification(Bucket bucket, String aKey) throws Exception {
+    public static String SubDocModification(Bucket bucket, String aKey) throws Exception {
 
         System.out.println("Lookup attempt");
 
@@ -21,7 +21,7 @@ public class SampleSub {
                 .execute();
 
 
-        JsonDocument somedoc = JsonDocument.create("someid",
+        JsonDocument somedoc = JsonDocument.create(aKey,
                 JsonObject.create()
                         .put("logins", 0)
                         .put("searches", 0)
@@ -29,7 +29,7 @@ public class SampleSub {
         );
         bucket.upsert(somedoc);
 
-        bucket.mutateIn("someKey")
+        bucket.mutateIn(aKey)
                 .counter("logins", 1,false)
                 .counter("searches", 5, false)
                 .counter("path", -1, false)
@@ -40,7 +40,7 @@ public class SampleSub {
 
         System.out.println("Mutate attempt");
         
-        MutateInBuilder builder = bucket.mutateIn("Int02");
+        MutateInBuilder builder = bucket.mutateIn(aKey);
         DocumentFragment<Mutation> result = builder.replace("parent", 40).execute();
 
         DocumentFragment<Lookup> result2 = bucket

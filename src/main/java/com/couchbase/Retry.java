@@ -12,13 +12,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 
 public class Retry {
 
     private static final int ThreadCount = 10;
 
-    public static void main(String[] args) throws IOException, ParseException {
+    public static void main(String[] args) throws IOException, ParseException, InterruptedException {
 
         Bucket bucket = ConnectionManager.getConnection();
         Bucket bucket2 = ConnectionManager.getConnection2();
@@ -28,11 +27,13 @@ public class Retry {
         FileReader reader1 = null;
         JSONParser jsonParser = new JSONParser();
         JsonTranscoder trans = new JsonTranscoder();
+        List<String> keyArray = new ArrayList<>();
         List<JsonDocument> docArray = new ArrayList<>();
         JsonObject jsonObj = null;
         JsonDocument jsonDoc = null;
         Random r = new Random();
         final String filePath1 = "/Users/justin/Documents/javastuff/RxJAVASamples/src/main/java/com/couchbase/file.json";
+        //final String filePath1 = "/Users/justin/Documents/javastuff/data.json";
         //BufferedReader buff1 = null;
 
         reader1 = new FileReader(filePath1);
@@ -44,7 +45,8 @@ public class Retry {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < (numDocs*groupDocs); i=i+groupDocs) {
+        // This is a work in progress
+        /*for (int i = 0; i < (numDocs*groupDocs); i=i+groupDocs) {
             for (int z = 0; z < groupDocs; z++) {
                 jsonObj.put("eqr_xref", i);
                 // Create an id to use
@@ -64,17 +66,48 @@ public class Retry {
                 docArray.add(i+z, jsonDoc);
             }
 
-        }
+        }*/
 
         System.out.println("Starting... ");
+
+        //Create multiple threads across different workloads
+        /*try{
+            SampleSub.SubDocModification(bucket, "test");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
         //ConcurrentQuery.testParalel(bucket);
         //BulkLoader.bLoad(bucket, docArray);
         //RefDoc.addRefDoc(bucket2);
-        RefDoc.qBulk(bucket2);
+        //RefDoc.qBulk(bucket2);
+
+        //AppD Start
+        keyArray = MetricQuery.getKeys(bucket2);
+        System.out.println("Bulk version 1... ");
+        long timeBefore = System.currentTimeMillis();
+        docArray = MetricQuery.getMetricsFromFullDocs_1(bucket2, keyArray);
+        long timeAfter = System.currentTimeMillis();
+        System.out.println(timeAfter - timeBefore);
+        System.out.println(docArray.size());
+        System.out.println("Bulk version 2... ");
+        timeBefore = System.currentTimeMillis();
+        docArray = MetricQuery.getMetricsFromFullDocs_2(bucket2, keyArray);
+        timeAfter = System.currentTimeMillis();
+        System.out.println(timeAfter - timeBefore);
+        System.out.println(docArray.size());
+        System.out.println("Bulk version 3... ");
+        timeBefore = System.currentTimeMillis();
+        docArray = MetricQuery.getMetricsFromFullDocs_3(bucket2, keyArray);
+        timeAfter = System.currentTimeMillis();
+        System.out.println(timeAfter - timeBefore);
+        System.out.println(docArray.size());
+        //AppD End
 
         // Disconnect and clear all allocated resources
         System.out.println("debug ... bye");
-        bucket.close();
-        bucket2.close();
+        Boolean a = ConnectionManager.closeBucket(bucket);
+        Boolean b = ConnectionManager.closeBucket(bucket2);
+        System.out.println(a);
+        System.out.println(b);
     }
 }

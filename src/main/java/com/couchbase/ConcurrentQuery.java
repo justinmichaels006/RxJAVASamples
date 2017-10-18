@@ -1,11 +1,18 @@
 package com.couchbase;
 
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
+import com.couchbase.client.java.query.Select;
+import com.couchbase.client.java.query.Statement;
 import rx.Observable;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.couchbase.client.java.query.dsl.Expression.*;
 
 public class ConcurrentQuery {
 
@@ -14,7 +21,7 @@ public class ConcurrentQuery {
         long totalTime = 0;
         List<N1qlQuery> n1qlArray = new ArrayList<>();
 
-        n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:1\",  {\"type\":\"A\",\"val\":\"FOX\"}) RETURNING *;"));
+        /*n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:1\",  {\"type\":\"A\",\"val\":\"FOX\"}) RETURNING *;"));
         n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:2\",  {\"type\":\"A\",\"val\":\"COP\"}) RETURNING *;"));
         n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:3\",  {\"type\":\"A\",\"val\":\"TAXI\"}) RETURNING *;"));
         n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"A:4\",  {\"type\":\"A\",\"val\":\"LINCOLN\"}) RETURNING *;"));
@@ -30,18 +37,20 @@ public class ConcurrentQuery {
         n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:8\",  {\"type\":\"A\",\"val\":\"MICROSOFT\"}) RETURNING *;"));
         n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:9\",  {\"type\":\"A\",\"val\":\"APPLE\"}) RETURNING *;"));
         n1qlArray.add(N1qlQuery.simple("INSERT INTO testload (KEY, VALUE) VALUES ( \"B:11\",  {\"type\":\"A\",\"val\":\"SCOTCH\"}) RETURNING *;"));
-        System.out.println(n1qlArray.toString());
+        System.out.println(n1qlArray.toString());*/
 
-        /*Statement n1ql2 = Select.select("name", "IFMISSINGORNULL(country,999)", "IFMISSINGORNULL(code,999)")
-                .from(i("beer-sample"))
-                .where(x("type").eq(s("brewery"))
-                        .and(x("name").isNotMissing()))
-                .limit(1);
-        final N1qlQuery n1ql = N1qlQuery.simple(n1ql2, N1qlParams.build().adhoc(false));
+        JsonDocument someMutation = JsonDocument.create("key", JsonObject.create().put("somevalue", "thevalue"));
+        JsonDocument docWithToken = bucket.upsert(someMutation);
+
+        Statement n1ql2 = Select.select("header")
+                .from(i("testload"))
+                .where(x("data.version").eq(s("1.0")));
+        final N1qlQuery n1ql = N1qlQuery.simple(n1ql2, N1qlParams.build().adhoc(false).consistentWith(docWithToken));
         int q = 20;
         for (int x = 0; x < q; x++) {
             n1qlArray.add(n1ql);
-        }*/
+
+        }
 
         final long totalTimeStart = System.currentTimeMillis();
 

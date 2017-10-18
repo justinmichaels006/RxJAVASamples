@@ -19,6 +19,8 @@ public class BulkLoader {
         final int MAX_RETRIES = 20000;
         final int RETRY_DELAY = 50;
         final int MAX_DELAY = 1000;
+        String akey = "somekey";
+
 
         long start = System.nanoTime();
         Observable
@@ -28,14 +30,16 @@ public class BulkLoader {
                             // do retry for each op individually to not fail the full batch
                             .retryWhen(anyOf(BackpressureException.class)
                                     .max(MAX_RETRIES)
-                                    .delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY)).build())
+                                    .delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY))
+                                    .build())
                             .retryWhen(anyOf(TemporaryFailureException.class)
-                                    .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY)).build());
+                                    .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY))
+                                    .build());
                 }).toBlocking().subscribe(document1 -> {});
+
         long end = System.nanoTime();
 
         System.out.println("Bulk loading " + docArray.size() + " docs took: " + TimeUnit.NANOSECONDS.toSeconds(end - start) + "s.");
-        return ("Bulk loading " + docArray.size()  + " docs took: " + TimeUnit.NANOSECONDS.toSeconds(end - start) + "s.");
-    }
-
+        return ("Bulk loading " + docArray.size() + " docs took: " + TimeUnit.NANOSECONDS.toSeconds(end - start) + "s.");
+    };
 }
