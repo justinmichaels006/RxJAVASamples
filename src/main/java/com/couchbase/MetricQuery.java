@@ -4,6 +4,7 @@ import com.couchbase.client.core.BackpressureException;
 import com.couchbase.client.core.CouchbaseException;
 import com.couchbase.client.core.time.Delay;
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.ReplicaMode;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.query.AsyncN1qlQueryRow;
 import com.couchbase.client.java.query.N1qlParams;
@@ -72,6 +73,9 @@ public class MetricQuery {
                                         .delay(Delay.fixed(10, TimeUnit.MILLISECONDS))
                                         .build())
                                 .doOnError(System.err::println)
+                                .onErrorResumeNext(error -> {
+                                    return bucket.async().getFromReplica(id, ReplicaMode.ALL);
+                                })
                                 .onExceptionResumeNext(Observable.empty());
                     }
                 }).toList().toBlocking().single();
