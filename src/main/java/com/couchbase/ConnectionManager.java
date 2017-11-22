@@ -32,6 +32,7 @@ public class ConnectionManager {
             .computationPoolSize(2)  // threadpool for non-io tasks like serialization. very rare needed to be changed
             .callbacksOnIoPool(true) // run callbacks on IO thread
             .kvEndpoints(2) //if you have batch upload can gain throughput
+            //.callbacksOnIoPool(true)
             // but with small operations can cause contention with socket overhead
             //.queryEndpoints(2) // long running N1QL queries
             //.jHiccupEnabled(false)   // jHiccup runs a thread; good for diagnosis but remove for sizing tests
@@ -52,6 +53,7 @@ public class ConnectionManager {
     }
 
     public synchronized static Bucket getConnection2() {
+        //System.setProperty(N1qlQueryExecutor.ENCODED_PLAN_ENABLED_PROPERTY, "false");
         final Bucket bucket = cluster.openBucket(bucketName2, bucketPassword);
         return bucket;
     }

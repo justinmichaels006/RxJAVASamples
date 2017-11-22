@@ -17,8 +17,8 @@ public class BulkLoader {
     public static String bLoad(Bucket bucket, List<JsonDocument> docArray) {
 
         final int MAX_RETRIES = 20000;
-        final int RETRY_DELAY = 50;
-        final int MAX_DELAY = 1000;
+        final int RETRY_DELAY = 5;
+        final int MAX_DELAY = 10;
         String akey = "somekey";
 
 
@@ -30,10 +30,10 @@ public class BulkLoader {
                             // do retry for each op individually to not fail the full batch
                             .retryWhen(anyOf(BackpressureException.class)
                                     .max(MAX_RETRIES)
-                                    .delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY))
+                                    .delay(Delay.exponential(TimeUnit.MILLISECONDS, MAX_DELAY, RETRY_DELAY))
                                     .build())
                             .retryWhen(anyOf(TemporaryFailureException.class)
-                                    .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.MILLISECONDS, RETRY_DELAY, MAX_DELAY))
+                                    .max(MAX_RETRIES).delay(Delay.exponential(TimeUnit.MILLISECONDS, MAX_DELAY, RETRY_DELAY))
                                     .build());
                 }).toBlocking().subscribe(document1 -> {});
 

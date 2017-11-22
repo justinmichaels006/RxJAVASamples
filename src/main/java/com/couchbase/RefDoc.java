@@ -2,11 +2,17 @@ package com.couchbase;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.query.AsyncN1qlQueryResult;
+import com.couchbase.client.java.query.AsyncN1qlQueryRow;
 import com.couchbase.client.java.query.N1qlParams;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.transcoder.JsonTranscoder;
 import rx.Observable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RefDoc {
 
@@ -41,21 +47,50 @@ public class RefDoc {
         return jobj;
     }
 
-    public static String qBulk(Bucket bucket) {
+    public static List<JsonDocument> qBulk(Bucket bucket, JsonArray theList) {
 
-        final N1qlQuery n1ql5 = N1qlQuery.simple("SELECT meta().id FROM `travel-sample` WHERE type = \"airline\"",
-                N1qlParams.build().adhoc(false));
+        List<JsonDocument> reportDocs = new ArrayList<JsonDocument>();
+        //List<String> theSublist = new ArrayList<String>();
 
-        Observable<String> qRow = bucket.async()
+        //Syncronous is slow
+        /*for (int i = 0; i < reportsDocs.size(); i++) {
+            //Get the document based on key array
+            JsonDocument somedoc = bucket.get(reportsDocs.getString(i));
+            theList.add(somedoc);
+            //Get the attributes needed based on key array
+            //theSublist.add(bucket.lookupIn(reportsDocs.getString(i)).get("email").execute().toString());
+        }*/
+
+        //Async is fast
+        Observable.from(theList)
+                .flatMap(a -> { return bucket.async().get(a.toString());})
+                .toBlocking()
+        .subscribe(
+                result -> reportDocs.add(result)
+        );
+
+        System.out.println(reportDocs);
+        System.out.println(theList);
+        //System.out.println("theSublist");
+        //System.out.println(theSublist);
+        return reportDocs;
+    }
+
+    public static String qTest(Bucket bucket) {
+
+        String matrixQ = "select top.reporting, top.email as supEml, IFMISSINGORNULL(ARRAY_COUNT(top.reporting), 0) as directReportsCount\n" +
+                "from testload top\n" +
+                "where top.cliCode = 2033 and  top.jobTitle = 'ABSENCE RADAR TOP NODE'";
+
+        final N1qlQuery n1ql5 = N1qlQuery.simple(matrixQ, N1qlParams.build().adhoc(false));
+
+        AsyncN1qlQueryRow qDocs = bucket.async()
                 .query(n1ql5)
-                .flatMap(result -> result.rows())
-                .map(rowContent -> rowContent.value().get("id").toString());
+                .flatMap(AsyncN1qlQueryResult::rows)
+                .toBlocking().single();
 
-        try{
-            qRow.map(a -> bucket.get(a)).toBlocking().forEach(c -> System.out.println(c));
-            return "ok";
-        } catch (Exception e) {
-            return("debug bulk " + e);
-        }
+        System.out.println("theQ");
+        System.out.println(qDocs);
+        return "ok";
     }
 }
