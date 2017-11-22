@@ -52,7 +52,7 @@ public class RefDoc {
         List<JsonDocument> reportDocs = new ArrayList<JsonDocument>();
         //List<String> theSublist = new ArrayList<String>();
 
-        //Syncronous is slow
+        //Syncronous
         /*for (int i = 0; i < reportsDocs.size(); i++) {
             //Get the document based on key array
             JsonDocument somedoc = bucket.get(reportsDocs.getString(i));
@@ -61,7 +61,7 @@ public class RefDoc {
             //theSublist.add(bucket.lookupIn(reportsDocs.getString(i)).get("email").execute().toString());
         }*/
 
-        //Async is fast
+        //Async
         Observable.from(theList)
                 .flatMap(a -> { return bucket.async().get(a.toString());})
                 .toBlocking()
