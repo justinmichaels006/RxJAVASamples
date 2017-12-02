@@ -29,10 +29,8 @@ public class MetricQuery {
         N1qlParams params = N1qlParams.build().adhoc(false);
         //String thequery = "SELECT meta().id FROM `beer-sample` WHERE type =  \"brewery\"";
         //String thequery = "SELECT meta().id FROM `beer-sample`";
-        String matrixQ = "select top.reporting, top.email as supEml, IFMISSINGORNULL(ARRAY_COUNT(top.reporting), 0) as directReportsCount\n" +
-                "from testload top\n" +
-                "where top.cliCode = 2033 and  top.jobTitle = 'ABSENCE RADAR TOP NODE'";
-        N1qlQuery simpleQ = N1qlQuery.simple(matrixQ, params);
+        String genericQ = "select meta().id from testload";
+        N1qlQuery simpleQ = N1qlQuery.simple(genericQ, params);
         JsonArray keyarray = JsonArray.create();
 
         bucket.async()

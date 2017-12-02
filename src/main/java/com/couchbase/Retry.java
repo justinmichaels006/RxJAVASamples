@@ -6,7 +6,6 @@ import com.couchbase.client.java.document.json.JsonArray;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Retry {
@@ -29,20 +28,21 @@ public class Retry {
         //RefDoc.addRefDoc(bucket2);
         //RefDoc.qBulk(bucket2);
 
-        //Matrix
+        //Wells Fargo Start
         long timeBefore = System.currentTimeMillis();
         JsonArray theKeys = MetricQuery.getKeys(bucket);
         long timeAfter = System.currentTimeMillis();
         System.out.println(timeAfter - timeBefore);
+        System.out.println(theKeys.size());
 
-        System.out.println(theKeys);
+        //DEBUG: System.out.println(theKeys);
 
         System.out.println("Got the keys now the docs");
         timeBefore = System.currentTimeMillis();
         List<JsonDocument> theDocs = RefDoc.qBulk(bucket, theKeys);
         timeAfter = System.currentTimeMillis();
         System.out.println(timeAfter - timeBefore);
-        //Matrix End
+        //Wells Fargo End
 
         //RH Start
         /*CountListQueue.CountCreate(bucket);

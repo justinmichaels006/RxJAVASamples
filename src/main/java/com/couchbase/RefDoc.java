@@ -50,18 +50,7 @@ public class RefDoc {
     public static List<JsonDocument> qBulk(Bucket bucket, JsonArray theList) {
 
         List<JsonDocument> reportDocs = new ArrayList<JsonDocument>();
-        //List<String> theSublist = new ArrayList<String>();
 
-        //Syncronous
-        /*for (int i = 0; i < reportsDocs.size(); i++) {
-            //Get the document based on key array
-            JsonDocument somedoc = bucket.get(reportsDocs.getString(i));
-            theList.add(somedoc);
-            //Get the attributes needed based on key array
-            //theSublist.add(bucket.lookupIn(reportsDocs.getString(i)).get("email").execute().toString());
-        }*/
-
-        //Async
         Observable.from(theList)
                 .flatMap(a -> { return bucket.async().get(a.toString());})
                 .toBlocking()
@@ -69,10 +58,9 @@ public class RefDoc {
                 result -> reportDocs.add(result)
         );
 
-        System.out.println(reportDocs);
-        System.out.println(theList);
-        //System.out.println("theSublist");
-        //System.out.println(theSublist);
+        //System.out.println(reportDocs);
+        //System.out.println(theList);
+
         return reportDocs;
     }
 
