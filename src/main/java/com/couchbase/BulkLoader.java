@@ -3,6 +3,8 @@ package com.couchbase;
 import com.couchbase.client.core.BackpressureException;
 import com.couchbase.client.core.time.Delay;
 import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.PersistTo;
+import com.couchbase.client.java.ReplicateTo;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.error.TemporaryFailureException;
 import rx.Observable;
@@ -26,7 +28,7 @@ public class BulkLoader {
         Observable
                 .from(docArray)
                 .flatMap(doc -> {
-                    return bucket.async().upsert(doc)
+                    return bucket.async().upsert(doc, PersistTo.ONE, ReplicateTo.ONE)
                             // do retry for each op individually to not fail the full batch
                             .retryWhen(anyOf(BackpressureException.class)
                                     .max(MAX_RETRIES)
