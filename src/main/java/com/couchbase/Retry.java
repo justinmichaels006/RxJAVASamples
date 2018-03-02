@@ -1,12 +1,9 @@
 package com.couchbase;
 
 import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonArray;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
-import java.util.List;
 
 public class Retry {
 
@@ -28,21 +25,27 @@ public class Retry {
         //RefDoc.addRefDoc(bucket2);
         //RefDoc.qBulk(bucket2);
 
-        //Wells Fargo Start
-        long timeBefore = System.currentTimeMillis();
-        JsonArray theKeys = MetricQuery.getKeys(bucket);
-        long timeAfter = System.currentTimeMillis();
-        System.out.println(timeAfter - timeBefore);
-        System.out.println(theKeys.size());
+        //WF Start
+        final String key="21st_amendment_brewery_cafe";
+        try {
+            byte[] response2 =  wf.getByteRecordNew(key, bucket2);
 
-        //DEBUG: System.out.println(theKeys);
-
-        System.out.println("Got the keys now the docs");
-        timeBefore = System.currentTimeMillis();
-        List<JsonDocument> theDocs = RefDoc.qBulk(bucket, theKeys);
-        timeAfter = System.currentTimeMillis();
-        System.out.println(timeAfter - timeBefore);
-        //Wells Fargo End
+            if(null != response2)
+            {
+                System.out.println("found record in couchbase");
+                System.out.println(response2);
+            }
+            else
+            {
+                System.out.println("did not find record in couchbase");
+            }
+            System.out.println("Done !!!!");
+            System.exit(0);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        //WF End
 
         //RH Start
         /*CountListQueue.CountCreate(bucket);

@@ -1,7 +1,7 @@
 package com.couchbase;
 
 import com.couchbase.client.core.metrics.DefaultLatencyMetricsCollectorConfig;
-import com.couchbase.client.core.retry.FailFastRetryStrategy;
+import com.couchbase.client.core.retry.BestEffortRetryStrategy;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
@@ -37,7 +37,7 @@ public class ConnectionManager {
             //.queryEndpoints(2) // long running N1QL queries
             //.jHiccupEnabled(false)   // jHiccup runs a thread; good for diagnosis but remove for sizing tests
             //.observeIntervalDelay() //replicateTo internal
-            .retryStrategy(FailFastRetryStrategy.INSTANCE) // only needed in demanding cache-only use case
+            .retryStrategy(BestEffortRetryStrategy.INSTANCE) // only needed in demanding cache-only use case
             .networkLatencyMetricsCollectorConfig(DefaultLatencyMetricsCollectorConfig.create(1, TimeUnit.MINUTES))
             .networkLatencyMetricsCollectorConfig(DefaultLatencyMetricsCollectorConfig.builder()
                             .targetUnit(TimeUnit.MILLISECONDS).build())
@@ -48,13 +48,14 @@ public class ConnectionManager {
             //.authenticate("user", "pass");
 
     public synchronized static Bucket getConnection() {
-        final Bucket bucket = cluster.openBucket(bucketName, bucketPassword);
+        cluster.authenticate("testload", "password");
+        final Bucket bucket = cluster.openBucket(bucketName);
         return bucket;
     }
 
     public synchronized static Bucket getConnection2() {
-        //System.setProperty(N1qlQueryExecutor.ENCODED_PLAN_ENABLED_PROPERTY, "false");
-        final Bucket bucket = cluster.openBucket(bucketName2, bucketPassword);
+        cluster.authenticate("beer-sample", "password");
+        final Bucket bucket = cluster.openBucket(bucketName2);
         return bucket;
     }
 
